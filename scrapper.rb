@@ -7,9 +7,9 @@ require 'nokogiri'
 
 
 
-blankNYCall = "https://api.nytimes.com/svc/books/v3/lists/@@@/combined-print-and-e-book-fiction.json?api-key=mwvIdiGLOAX1GkUfnBbxEXzBZCyaDzsI"
+blankNYCall = "https://api.nytimes.com/svc/books/v3/lists/@@@/combined-print-and-e-book-fiction.json?api-key=<key-here>"
 blankAppleCall = "https://uclient-api.itunes.apple.com/WebObjects/MZStorePlatform.woa/wa/lookup?version=2&id=@@@&p=mdm-lockup&caller=MDM&platform=enterprisestore&cc=us&l=en"
-api = ProxyCrawl::API.new(token: "p2dKhUnlMZvBIHaVxIovcg")
+api = ProxyCrawl::API.new(token: "key-here")
 
 addedBooksList = File.open("output.csv").read
 
