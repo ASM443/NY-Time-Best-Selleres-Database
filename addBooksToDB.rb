@@ -1,49 +1,70 @@
 require 'csv'
 
 
-File.open("addBooks.sql", 'w') { |file| 
+File.open("addBooks2.sql", 'w') { |file| 
     file.write("USE nyt_best_sellers;")}
 
 blankadd = 
 "
-INSERT IGNORE INTO title(title)
-VALUES(%title%);
-
-
 INSERT IGNORE INTO author(author_name)
 VALUES(%author%);
-
-
-INSERT IGNORE INTO price(Amazon_price, Apple_Books_price)
-VALUES(%amazon_price%, %apple_price%);
-
 
 INSERT IGNORE INTO publisher(publishing_company)
 VALUES(%publisher%);
 
+INSERT IGNORE INTO AmazonRating(Amazon_rating)
+Values(%amazon_rating%);
 
-INSERT IGNORE INTO rating(Amazon_rating, Apple_books_rating, Amazon_rating_count, Apple_rating_count)
-Values(%amazon_rating%, %apple_rating%, %amazon_count%, %apple_count%);
-
+INSERT IGNORE INTO AppleRating(Apple_rating)
+Values(%apple_rating% );
 
 INSERT IGNORE INTO genres(genre)
 VALUES(%genre%);
 
+INSERT IGNORE INTO AmazonPrice(Amazon_Price)
+Values(%amazon_price%);
+
+INSERT IGNORE INTO ApplePrice(Apple_Price)
+Values(%apple_price%);
 
 
-INSERT INTO books(title_id, author_id, genre_id, price_id, release_date, rating_id, publisher_id, pages)
-VALUES((SELECT title_id FROM title WHERE title = %title% LIMIT 1), 
-(SELECT author_id FROM author WHERE author_name = %author% LIMIT 1), 
+
+
+INSERT IGNORE INTO books(Title, author_id, genre_id, release_date, pages, publisher_id, Apple_Ratings_Count, Amazon_Ratings_Count, AppleRating_id, AmazonRating_id, AmazonPrice_id, ApplePrice_id)
+VALUES(%title%, 
+	(SELECT author_id FROM author WHERE author_name = %author% LIMIT 1), 
     (SELECT genre_id FROM genres WHERE genre = %genre% LIMIT 1),
-    (SELECT price_id FROM price WHERE %amazon_price% = Amazon_price AND %apple_price% = Apple_Books_price LIMIT 1),
     %release_date%, 
-    (SELECT rating_id FROM rating WHERE %amazon_rating% = Amazon_rating AND %apple_rating% = Apple_Books_rating AND %amazon_count% = Amazon_rating_count AND %apple_count% = Apple_rating_count LIMIT 1),
+    %pages%,
     (SELECT publisher_id FROM publisher WHERE publishing_company = %publisher% LIMIT 1),
-    %pages%);
+    %apple_count%,
+    %amazon_count%,
+    (SELECT AppleRating_id FROM AppleRating WHERE Apple_rating = %apple_rating% LIMIT 1),
+    (SELECT AmazonRating_id FROM AmazonRating WHERE Amazon_rating = %amazon_rating% LIMIT 1),
+    (SELECT ApplePrice_id FROM ApplePrice WHERE Apple_price = %apple_price% LIMIT 1),
+    (SELECT AmazonPrice_id FROM AmazonPrice WHERE Amazon_price = %amazon_price% LIMIT 1)
+);
+
+
+INSERT IGNORE INTO AllRatings(book_id, AmazonRating_id, AppleRating_id, AverageRating)
+VALUES(
+	(SELECT book_id FROM books WHERE Title = %title% AND pages = %pages% LIMIT 1),
+	(SELECT AppleRating_id FROM AppleRating WHERE Apple_rating = %apple_rating% LIMIT 1),
+    (SELECT AmazonRating_id FROM AmazonRating WHERE Amazon_rating = %amazon_rating% LIMIT 1),
+    %avg_rating%);
+    
+INSERT IGNORE INTO AllPrices(book_id, AmazonPrice_id, ApplePrice_id, AveragePrice)
+VALUES(
+	(SELECT book_id FROM books WHERE Title = %title% AND pages = %pages% LIMIT 1),
+	(SELECT AppleRating_id FROM AppleRating WHERE Apple_rating = %apple_rating% LIMIT 1),
+    (SELECT AmazonPrice_id FROM AmazonPrice WHERE Amazon_price = 5.99 LIMIT 1),
+    %avg_price%);
 "
 
 
 CSV.foreach("output.csv") do |row|
+    avgrating = ((row[6].to_f) + (row[11].to_f))/2
+    avgprice = (row[8].to_f + row[9].to_f)/2
     insertbook = blankadd.gsub("%title%", "\"#{row[0]}\"")
                          .gsub("%author%", "\"#{row[1]}\"")
                          .gsub("%publisher%", "\"#{row[2]}\"")
@@ -56,6 +77,8 @@ CSV.foreach("output.csv") do |row|
                          .gsub("%amazon_count%", row[10].to_s.sub(",",""))
                          .gsub("%amazon_rating%", (row[11].to_f).to_s)
                          .gsub("%release_date%", "\'#{(Date.today-rand(10000)).to_s}\'")
-        File.open("addBooks.sql", 'a') { |file| file.write(insertbook)}
+                         .gsub("%avg_rating%", avgrating.to_s)
+                         .gsub("%avg_price%", avgprice.to_s)
+        File.open("addBooks2.sql", 'a') { |file| file.write(insertbook)}
 end
 
