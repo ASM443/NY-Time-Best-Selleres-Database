@@ -32,32 +32,32 @@ Values(%apple_price%);
 
 INSERT IGNORE INTO books(Title, author_id, genre_id, release_date, pages, publisher_id, Apple_Ratings_Count, Amazon_Ratings_Count, AppleRating_id, AmazonRating_id, AmazonPrice_id, ApplePrice_id)
 VALUES(%title%, 
-	(SELECT author_id FROM author WHERE author_name = %author% LIMIT 1), 
-    (SELECT genre_id FROM genres WHERE genre = %genre% LIMIT 1),
+	(SELECT author_id FROM author WHERE author_name = %author%), 
+    (SELECT genre_id FROM genres WHERE genre = %genre%),
     %release_date%, 
     %pages%,
-    (SELECT publisher_id FROM publisher WHERE publishing_company = %publisher% LIMIT 1),
+    (SELECT publisher_id FROM publisher WHERE publishing_company = %publisher%),
     %apple_count%,
     %amazon_count%,
-    (SELECT AppleRating_id FROM AppleRating WHERE Apple_rating = %apple_rating% LIMIT 1),
-    (SELECT AmazonRating_id FROM AmazonRating WHERE Amazon_rating = %amazon_rating% LIMIT 1),
-    (SELECT ApplePrice_id FROM ApplePrice WHERE Apple_price = %apple_price% LIMIT 1),
-    (SELECT AmazonPrice_id FROM AmazonPrice WHERE Amazon_price = %amazon_price% LIMIT 1)
+    (SELECT AppleRating_id FROM AppleRating WHERE Apple_rating = %apple_rating%),
+    (SELECT AmazonRating_id FROM AmazonRating WHERE Amazon_rating = %amazon_rating%),
+    (SELECT ApplePrice_id FROM ApplePrice WHERE Apple_price = %apple_price%),
+    (SELECT AmazonPrice_id FROM AmazonPrice WHERE Amazon_price = %amazon_price%)
 );
 
 
 INSERT IGNORE INTO AllRatings(book_id, AmazonRating_id, AppleRating_id, AverageRating)
 VALUES(
-	(SELECT book_id FROM books WHERE Title = %title% AND pages = %pages% LIMIT 1),
-	(SELECT AppleRating_id FROM AppleRating WHERE Apple_rating = %apple_rating% LIMIT 1),
-    (SELECT AmazonRating_id FROM AmazonRating WHERE Amazon_rating = %amazon_rating% LIMIT 1),
+	(SELECT book_id FROM books WHERE Title = %title% AND pages = %pages%),
+	(SELECT AppleRating_id FROM AppleRating WHERE Apple_rating = %apple_rating%),
+    (SELECT AmazonRating_id FROM AmazonRating WHERE Amazon_rating = %amazon_rating%),
     %avg_rating%);
     
 INSERT IGNORE INTO AllPrices(book_id, AmazonPrice_id, ApplePrice_id, AveragePrice)
 VALUES(
-	(SELECT book_id FROM books WHERE Title = %title% AND pages = %pages% LIMIT 1),
-	(SELECT AppleRating_id FROM AppleRating WHERE Apple_rating = %apple_rating% LIMIT 1),
-    (SELECT AmazonPrice_id FROM AmazonPrice WHERE Amazon_price = 5.99 LIMIT 1),
+	(SELECT book_id FROM books WHERE Title = %title% AND pages = %pages%),
+	(SELECT ApplePrice_id FROM ApplePrice WHERE Apple_price = %apple_price%),
+    (SELECT AmazonPrice_id FROM AmazonPrice WHERE Amazon_price = %amazon_price%),
     %avg_price%);
 "
 
@@ -77,8 +77,8 @@ CSV.foreach("output.csv") do |row|
                          .gsub("%amazon_count%", row[10].to_s.sub(",",""))
                          .gsub("%amazon_rating%", (row[11].to_f).to_s)
                          .gsub("%release_date%", "\'#{(Date.today-rand(10000)).to_s}\'")
-                         .gsub("%avg_rating%", avgrating.to_s)
-                         .gsub("%avg_price%", avgprice.to_s)
+                         .gsub("%avg_rating%", avgrating.round(2).to_s)
+                         .gsub("%avg_price%", avgprice.round(2).to_s)
         File.open("addBooks2.sql", 'a') { |file| file.write(insertbook)}
 end
 
